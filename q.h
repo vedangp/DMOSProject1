@@ -1,22 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "TCB.h"
+
 /* The add is done at the head and remove is done at the tail.  Which is opposite to what Prof. Dasgupta stated in the project guidelines. */ 
-struct Q_elem{
-	int data;
-	struct Q_elem* next;
-	struct Q_elem* prev;
-};
 
 struct Q{
-	struct Q_elem* head;
-	struct Q_elem* tail;
+	struct TCB* head;
+	struct TCB* tail;
 };
 
 
 void Init(struct Q** Q);
-void Add(struct Q* Q,struct Q_elem* item);
-struct Q_elem* Del(struct Q*);
+void Add(struct Q* Q,TCB_t* item);
+TCB_t* Del(struct Q*);
 void Rotate(struct Q* Q);
 
 void Init(struct Q** Q)
@@ -26,7 +23,7 @@ void Init(struct Q** Q)
 	(*Q)->tail = NULL;
 }
 
-void Add(struct Q* Q, struct Q_elem* item)
+void Add(struct Q* Q, TCB_t* item)
 {
 	if (Q->head != NULL && Q->tail != NULL)
     	{
@@ -45,9 +42,9 @@ void Add(struct Q* Q, struct Q_elem* item)
 	    
 }
 
-struct Q_elem* Del(struct Q*Q)
+TCB_t* Del(struct Q* Q)
 {
-	struct Q_elem* temp;
+	TCB_t* temp;
 	if (Q->head != NULL && Q->tail != NULL)
 	{
 		(Q->head)->next = (Q->tail)->next;

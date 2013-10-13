@@ -8,7 +8,7 @@ print_queue(struct Q* Q)
 	struct Q_elem* elem = Q->tail;
 	do
 	{
-		printf("%d\n",elem->data);
+//		printf("%d\n",elem->data);
 		elem = elem->next;
 	} while(elem != Q->tail);
 }
@@ -31,14 +31,14 @@ int main()
 		{
 			case 'a':
 				elem_add = (struct Q_elem*) malloc(sizeof(struct Q_elem));
-				elem_add->data = i;
+//				elem_add->data = i;
     				i++;
 				printf("Element Added\n");
 				Add(Q,elem_add);
 				break;
 			case 'd':
 				elem_del = Del(Q);
-				printf("%d",elem_del->data);
+				//printf("%d",elem_del->data);
 				printf("Element Deleted\n");
 				if (elem_del != NULL)
 				    free(elem_del);
