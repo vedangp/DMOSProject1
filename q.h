@@ -1,3 +1,10 @@
+/*******************************************************************************************
+FileName:q.h
+Authors:Vedang Patel & Rohit Srikanta
+Course: CSE 531-Distributed and Multiprocessor Operating Systems, Fall 2013 Wednesday batch
+Description: Routines To manipulate the TCB Queue.  
+********************************************************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 

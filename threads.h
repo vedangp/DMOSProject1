@@ -1,3 +1,9 @@
+/******************************************************************************************
+FileName:threads.h
+Authors:Vedang Patel & Rohit Srikanta
+Course: CSE 531-Distributed and Multiprocessor Operating Systems, Fall 2013 Wednesday batch
+Description: Routines to initialize and Swap thread contexts  
+********************************************************************************************/
 #include "q.h"
 
 #define STACK_SIZE 8192
@@ -24,9 +30,9 @@ void start_thread(void (*function) (void))
 
 void run ()
 {
-	ucontext_t parent;     // get a place to store the main context, for faking
-	getcontext(&parent);   // magic sauce
-	swapcontext(&parent, &((RunQ->tail)->context));  // start the first thread	   
+	ucontext_t parent;    
+	getcontext(&parent);   
+	swapcontext(&parent, &((RunQ->tail)->context)); 
 }
 
 void yield()

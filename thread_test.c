@@ -1,3 +1,9 @@
+/********************************************************************************************
+FileName:thread_test.c
+Authors:Vedang Patel & Rohit Srikanta
+Course: CSE 531-Distributed and Multiprocessor Operating Systems, Fall 2013 Wednesday batch
+Description: Routines to be started as threads   
+************************************************************************************************/
 #include <stdio.h>
 #include "threads.h"
 
