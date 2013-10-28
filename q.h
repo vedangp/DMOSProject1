@@ -54,12 +54,21 @@ TCB_t* Del(struct Q* Q)
 	TCB_t* temp;
 	if (Q->head != NULL && Q->tail != NULL)
 	{
-		(Q->head)->next = (Q->tail)->next;
-		temp = Q->tail;
-		Q->tail = temp->next;
-		(Q->tail)->prev = Q->head;
-	}
-	else 
+		if (Q->head == Q->tail)
+		{
+			temp = Q->head;
+			Q->head = NULL;
+			Q->tail = NULL;
+			temp->next = NULL;
+			temp->prev = NULL;
+		} else 
+		{
+			(Q->head)->next = (Q->tail)->next;
+			temp = Q->tail;
+			Q->tail = temp->next;
+			(Q->tail)->prev = Q->head;
+		}	
+	} else 
 	{
 		printf("no item to Delete\n");
 		temp = NULL;
