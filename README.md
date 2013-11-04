@@ -1,2 +1,2 @@
-DMOSProject1
+DMOS Projects
 ============
