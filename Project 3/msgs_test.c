@@ -1,3 +1,10 @@
+/*******************************************************************************************
+FileName:msgs_test.c
+Authors:Vedang Patel & Rohit Srikanta
+Course: CSE 531-Distributed and Multiprocessor Operating Systems, Fall 2013 Wednesday batch
+Description: Client Server Testing.  
+********************************************************************************************/
+
 #include "msgs.h"
 int server_port = 2;
 int client_port = 6;

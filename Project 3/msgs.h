@@ -1,3 +1,9 @@
+/*******************************************************************************************
+FileName:msgs.h
+Authors:Vedang Patel & Rohit Srikanta
+Course: CSE 531-Distributed and Multiprocessor Operating Systems, Fall 2013 Wednesday batch
+Description: Client Server Implementaion.  
+********************************************************************************************/
 #include "sem.h"
 #define N 			10
 #define MSG_QUEUE_LENGTH	10
