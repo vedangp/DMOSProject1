@@ -1,3 +1,9 @@
+/*******************************************************************************************
+FileName:cl-srv.c
+Authors:Vedang Patel & Rohit Srikanta
+Course: CSE 531-Distributed and Multiprocessor Operating Systems, Fall 2013 Wednesday batch
+Description: Client Server Implementation to send and receive messages.  
+********************************************************************************************/
 #include "msgs.h"
 #include <stdlib.h>
 
@@ -282,12 +288,15 @@ void client()
 		switch(inp)
 		{
 			case 0:
+				printf("Client adding data to the table\n");
 				client_add(CLIENT1_RECV_PORT,"This is random string for DMOS Project 4.",i);
 				break;
 			case 1:
+				printf("Client deleting data from table\n");
 				client_delete(CLIENT1_RECV_PORT,i);
 				break;
 			case 2:
+				printf("Client modifying data on the table\n");
 				client_modify(CLIENT1_RECV_PORT,"This is another random string to be written",i);
 				break;
 //			case 3: 
@@ -295,7 +304,7 @@ void client()
 //				client_print(CLIENT1_RECV_PORT);
 //				break;
 			default: 
-				printf("invalid\n");
+				printf("Invalid option entered. Please try again\n");
 		}
 		sleep(1);
 		yield();
@@ -306,7 +315,7 @@ void server_init()
 {
 	int i;
 	strings = calloc (NUMBER_OF_STRINGS, sizeof(char*));
-	
+	printf("Initializing the server table\n");
 	for (i=0;i<NUMBER_OF_STRINGS;i++)
 	{
 		strings[i] = NULL;
@@ -493,21 +502,25 @@ void server()
 		switch(msg[1])
 		{
 			case COMMAND_ADD:
+				printf("Add message received from client\n");
 				ret = server_add(&msg[3],msg[2]);
 				reply_msg[0] = ret;
 				send(msg[0],(struct msg*)reply_msg);
 				break;
 			case COMMAND_DELETE:
+				printf("Delete message received from client\n");
 				ret = server_delete(msg[2]);
 				reply_msg[0] = ret;
 				send(msg[0],(struct msg*)reply_msg);
 				break;
 			case COMMAND_MODIFY:
+				printf("Modify message received from client\n");
 				ret = server_modify(&msg[3],msg[2]);
 				reply_msg[0] = ret;
 				send(msg[0],(struct msg*)reply_msg);
 				break;
 			case COMMAND_PRINT:
+				printf("Print message received from client\n");
 				strings = server_print();
 				data->ack = ACK_PRINT;
 				data->strings = strings;
@@ -515,7 +528,7 @@ void server()
 				//free(data);
 				break;
 			default:
-				printf("Invalid Command\n");
+				printf("Invalid command received\n");
 		}
 		//free(msg);
 		yield();
@@ -530,6 +543,7 @@ void client3()
 	{
 		if (rand() < RAND_MAX/2)
 		{
+			printf("Printing the values on server table\n");
 			client_print(CLIENT1_RECV_PORT);
 		}
 		sleep(1);
@@ -539,13 +553,17 @@ void client3()
 
 int main()
 {
+	printf("Initializing the Run Q\n");
 	init_RunQ();
 	init_ports();
 	server_init();
-	
+	printf("Starting client 1\n");
 	start_thread(client);
+	printf("Starting client 2\n");
 	start_thread(client);
+	printf("Starting client 3\n");
 	start_thread(client3);
+	printf("Starting Server\n");
 	start_thread(server);
 
 	run();
