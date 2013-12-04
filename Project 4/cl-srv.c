@@ -5,6 +5,7 @@ Course: CSE 531-Distributed and Multiprocessor Operating Systems, Fall 2013 Wedn
 Description: Client Server Implementation to send and receive messages.  
 ********************************************************************************************/
 #include "msgs.h"
+#include <time.h>
 #include <stdlib.h>
 
 #define CEIL(X,Y) ((X) % (Y)) ? (((X) / (Y)) + 1) : ((X) / (Y)); 
@@ -40,8 +41,10 @@ Description: Client Server Implementation to send and receive messages.
 
 int number_of_strings =0;
 
+struct Semaphore_t* client_sync;
+
 struct send_data_packet{
-	unsigned char client_port_number;
+unsigned char client_port_number;
 	unsigned char command;
 	unsigned char position;
 	char* string;
@@ -88,7 +91,6 @@ void send_data(int port_number, struct send_data_packet* data_packet)
 	{
 		int j, size = strlen(data_packet->string)+1 ;
 		int iter = CEIL((strlen(data_packet->string)+1),(MAX_STRING_LENGTH));
-		printf("number of iterations: %d\n",iter);
 		for(j=0;j<iter;j++)
 		{
 			char* data = (char*) data_packet;
@@ -100,7 +102,7 @@ void send_data(int port_number, struct send_data_packet* data_packet)
 			msg[2] = data[2];
 			for (i=3;i<MAX_MSG_LENGTH-1;i++)
 			{
-				msg[i] =  (i < size) ? data_packet->string[(i-3)+ (j*MAX_STRING_LENGTH)] : 0;
+				msg[i] =  (i <= size) ? data_packet->string[(i-3)+ (j*MAX_STRING_LENGTH)] : 0;
 			}
 			size -= MAX_STRING_LENGTH;
 			msg[MAX_MSG_LENGTH-1] = (j == iter-1)? END_OF_DATA : MORE_DATA;
@@ -125,7 +127,6 @@ int receive_recurse_data(int port_number, char** string)
 			*(string) = (char*)malloc(MAX_MSG_LENGTH-1);
 			while (j!=NUMBER_OF_STRINGS)
 			{
-			//	printf("while iter %d\n",i);
 				(*string)[i] = msg[i+1];
 				j += (msg[i] == '\0' || msg[i] == 0) ? 1: 0;
 				i++;
@@ -135,28 +136,22 @@ int receive_recurse_data(int port_number, char** string)
 		{
 			char* msg_final=NULL;
 			int iter=0,i;
-		//	printf("Rec recv\n");
 			msg_final = malloc(500);//MAX_MSG_LENGTH);
 			msg_final[0] = msg[0];
 			for (i=0;i<38;i++)
 			{
 				msg_final[i + iter*38 + 1] = msg[i+1];
-				printf("%d ",msg_final[i + iter*38 + 1]);
 			}
 			
 			while (msg[MAX_MSG_LENGTH-1] != END_OF_DATA)
 			{
 				int i;
-				receive(CLIENT1_RECV_PORT,(struct msg*) msg);
+				receive(port_number,(struct msg*) msg);
 				iter++;
-				//msg_final = realloc(msg_final,iter*38 + 1);
 				for (i=0;i<38;i++)
 				{
 					msg_final[i + iter*38 + 1] = msg[i+1];
-					printf("%d ",msg_final[i + iter*38 + 1]);
 				}
-				printf("\n");
-				
 			} 
 			*(string)= &msg_final[1];
 			return (int)msg_final[0];
@@ -176,13 +171,6 @@ struct receive_data_packet* receive_data(int port_number)
 	data = malloc(sizeof(struct receive_data_packet));
 
 	data->ack = receive_recurse_data(port_number,&data->strings);
-	if (data->ack == ACK_PRINT)
-	{
-		for (i=0;i<300;i++)
-		{
-			printf("%c",data->strings[i]);
-		}
-	}
 	return data;
 }
 
@@ -222,9 +210,9 @@ int client_modify(int client_port_number, char* string, int position)
 {
 	struct send_data_packet data;
 	struct receive_data_packet* reply_data;
-	data.string = malloc(30);
+	data.string = malloc(strlen(string));
 	data.client_port_number = client_port_number;
-	data.command = COMMAND_ADD;
+	data.command = COMMAND_MODIFY;
 	data.position = position;
 	strcpy(data.string,string);
 	
@@ -274,42 +262,116 @@ void print_strings_table()
 	}
 }
 
-// code for c
-void client()
+void client1()
 {
-	int inp;
+	int inp, rand_val;
 	int i;
+	char * string1;
+	char * string2;
 	char string[50];
+
+	string1 = malloc(50);
+	string2 = malloc(50);
+
+	strcpy(string1, "This is a very long string for DMOS Project four.");
+	strcpy(string2, "This is a modified string for DMOS Project 4.");
+	
 
 	while(1)
 	{
-		inp = (rand()/(RAND_MAX/2));
+		rand_val = rand();
 
+		if(rand_val < RAND_MAX/3)
+			inp = 0;
+		else if (rand_val < (RAND_MAX/3)*2)
+			inp = 1;
+		else
+			inp = 2;
+
+	    
+		P(client_sync);	
+	    
 		switch(inp)
 		{
 			case 0:
-				printf("Client adding data to the table\n");
-				client_add(CLIENT1_RECV_PORT,"This is random string for DMOS Project 4.",i);
+				i = rand() % 10;
+				printf("Client 1 adding data to the table at position %d\n",i);
+				client_add(CLIENT1_RECV_PORT,string1,i);
 				break;
 			case 1:
-				printf("Client deleting data from table\n");
+				i = rand() % 10;
+				printf("Client 1 deleting data from table at position %d\n",i);
 				client_delete(CLIENT1_RECV_PORT,i);
 				break;
 			case 2:
-				printf("Client modifying data on the table\n");
-				client_modify(CLIENT1_RECV_PORT,"This is another random string to be written",i);
+				i = rand() % 10;
+				printf("Client 1 modifying data on the table at position %d\n",i);
+				client_modify(CLIENT1_RECV_PORT,string2,i);
 				break;
-//			case 3: 
-//				print_strings_table();
-//				client_print(CLIENT1_RECV_PORT);
-//				break;
 			default: 
 				printf("Invalid option entered. Please try again\n");
 		}
+		V(client_sync);
 		sleep(1);
-		yield();
+	//	yield();
 	}
 }
+
+void client2()
+{
+	int inp, rand_val;
+	int i;
+	char * string1;
+	char * string2;
+	char string[50];
+
+	string1 = malloc(50);
+	string2 = malloc(50);
+
+	strcpy(string1, "This is a very long string for DMOS Project four.");
+	strcpy(string2, "This is a modified string for DMOS Project 4.");
+	
+
+	while(1)
+	{
+		rand_val = rand();
+
+		if(rand_val < RAND_MAX/3)
+			inp = 1;
+		else if (rand_val < (RAND_MAX/3)*2)
+			inp = 2;
+		else
+			inp = 0;
+
+	    
+		P(client_sync);	
+	    
+		switch(inp)
+		{
+			case 0:
+				i = rand() % 10;
+				printf("Client 2 adding data to the table at position %d\n",i);
+				client_add(CLIENT2_RECV_PORT,string1,i);
+				break;
+			case 1:
+				i = rand() % 10;
+				printf("Client 2 deleting data from table at position %d\n",i);
+				client_delete(CLIENT2_RECV_PORT,i);
+				break;
+			case 2:
+				i = rand() % 10;
+				printf("Client 2 modifying data on the table at position %d\n",i);
+				client_modify(CLIENT2_RECV_PORT,string2,i);
+				break;
+			default: 
+				printf("Invalid option entered. Please try again\n");
+		}
+		V(client_sync);
+		sleep(1);
+	//	yield();
+	}
+}
+
 
 void server_init()
 {
@@ -328,9 +390,15 @@ int server_add(char* string, int position)
 		return CANNOT_ADD;
 	if (string == NULL)
 		return CANNOT_ADD;
-
-	strings[position] = malloc(strlen(string)+1);
-	strcpy(strings[position],string);
+	if(strings[position] == NULL)
+    	{
+		strings[position] = malloc(strlen(string)+1);
+		strcpy(strings[position],string);
+		printf("added to position %d\n",position);
+	}else 
+	{
+		printf("message already present.\n");
+	}
 
 	return ACK;
 }
@@ -339,10 +407,16 @@ int server_delete(int position)
 {
 	if (position < 0 || position > NUMBER_OF_STRINGS)
 		return CANNOT_DELETE;
+	if(strings[position] != NULL)
+	{
+		free(strings[position]);
+		strings[position] = NULL;
+		printf("Removing from position %d.\n",position);
+	}else
+	{
+    		printf("Nothing to delete.\n");
+    	}
 	
-	free(strings[position]);
-	strings[position] = NULL;
-
 	return ACK;
 }
 
@@ -353,9 +427,15 @@ int server_modify(char* string, int position)
 	if (string == NULL)
 		return CANNOT_MODIFY;
 
-	strings[position] = realloc(strings[position],strlen(string)+1);
-	strcpy(strings[position],string);
-
+	if(strings[position] != NULL)
+	{
+		strings[position] = realloc(strings[position],strlen(string)+1);
+		strcpy(strings[position],string);
+		printf("modifying at position %d\n",position);
+	}else
+	{
+		printf("No data. Not modifying.\n");
+	}
 	return ACK;
 }
 
@@ -429,9 +509,7 @@ void send_server_data(int port_number, struct receive_data_packet* data)
 			for (i=1;i<39;i++)
 			{
 				msg[i] =  (i < size) ? data->strings[(i-1)+ (j*38)] : 'z';
-	//			printf("%d ",msg[i]);
 			}
-	//		printf("i: %d size: %d\n",i,size);
 			size -= 38;
 			msg[MAX_MSG_LENGTH-1] = (j == iter-1)? END_OF_DATA : MORE_DATA;
 			send(port_number, (struct msg*)msg);
@@ -462,7 +540,7 @@ char* receive_server_data()
 			msg_final[0] = msg[0];
 			msg_final[1] = msg[1];
 			msg_final[2] = msg[2];
-			for (i=0;i<MAX_STRING_LENGTH-1;i++)
+			for (i=0;i<MAX_STRING_LENGTH;i++)
 			{
 				msg_final[i + iter*MAX_STRING_LENGTH + 3] = msg[i+3];
 			}
@@ -472,7 +550,7 @@ char* receive_server_data()
 				receive(SERVER_PORT,(struct msg*) msg);
 				iter++;
 				msg_final = realloc(msg_final,iter*MAX_STRING_LENGTH + 3);
-				for (i=0;i<MAX_STRING_LENGTH-1;i++)
+				for (i=0;i<MAX_STRING_LENGTH;i++)
 				{
 					msg_final[i + iter*MAX_STRING_LENGTH + 3] = msg[i+3];
 				}
@@ -532,7 +610,6 @@ void server()
 		}
 		//free(msg);
 		yield();
-//		printf("dasd %d %d %d %s\n",msg[0],msg[1],msg[2], &msg[3]);
 	}
 }
 
@@ -543,8 +620,10 @@ void client3()
 	{
 		if (rand() < RAND_MAX/2)
 		{
+			P(client_sync);
 			printf("Printing the values on server table\n");
 			client_print(CLIENT1_RECV_PORT);
+			V(client_sync);
 		}
 		sleep(1);
 		yield();
@@ -553,14 +632,22 @@ void client3()
 
 int main()
 {
+	printf("==== DMOS Project 4 ====\n");
+	printf("This program first starts the 2 client threads to perform add, delete and modify action on the server table and one more client to display the server table contents.\n");
+	printf("When the add functionality is called by the clients, we add a precoded string.\n The same is true for modify. When print is called we are printing the server table contents after requesting it from client 3.\n");
+	printf("We are randomly generating the input that calls the add, delete, modify or print functions on all the threads.\n");
+	
 	printf("Initializing the Run Q\n");
 	init_RunQ();
 	init_ports();
 	server_init();
+	
+	client_sync = CreateSem(1);
+
 	printf("Starting client 1\n");
-	start_thread(client);
+	start_thread(client1);
 	printf("Starting client 2\n");
-	start_thread(client);
+	start_thread(client2);
 	printf("Starting client 3\n");
 	start_thread(client3);
 	printf("Starting Server\n");
